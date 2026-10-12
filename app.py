@@ -7,13 +7,20 @@ import streamlit as st
 import pandas as pd
 from google.cloud import firestore
 from sqlalchemy import text
+from google.oauth2 import service_account
 
 #----Conexion----
 @st.cache_resource
 def get_db():
     """Crea y devuelve el cliente de Firestore usando keys.json."""
-    db = firestore.Client.from_service_account_json("keys.json")
-    return db
+    if "firestore" in st.secrets:
+        # Modo producción (Streamlit Cloud)
+        key_dict = dict(st.secrets["firestore"])
+        creds = service_account.Credentials.from_service_account_info(key_dict)
+        return firestore.Client(credentials=creds, project=key_dict["project_id"])
+    else:
+        # Modo local (tu computadora)
+        return firestore.Client.from_service_account_json("keys.json")
 
 #----Carga de datos----
 @st.cache_data
