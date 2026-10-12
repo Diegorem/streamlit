@@ -1,12 +1,19 @@
-import streamlit as st
+"""
+cargar_datos.py
+Carga los datos del csv a Firestore.
+"""
+
 import pandas as pd
 from google.cloud import firestore
 
-service_account = firestore.Client.from_service_account_json("keys.json")
+db = firestore.Client.from_service_account_json("keys.json")
 
-csv = pd.read_csv("movies.csv")
+df = pd.read_csv("movies.csv")
+movies_ref = db.collection("movies")
 
-df = pd.DataFrame(csv)
+for movie in df.to_dict(orient='records'):
+    movies_ref.add(movie)
+    print(f"Added movie: {movie['name']}")
 
-for movie in df:
-    print(movie)
+total = len(movies_ref.get())
+print(total)
